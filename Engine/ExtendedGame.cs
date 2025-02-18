@@ -1,6 +1,7 @@
 using System;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using Microsoft.Xna.Framework.Input;
 
 namespace Engine
 {
@@ -12,14 +13,21 @@ namespace Engine
         private List<GameObject> gameObjects;
         private InputHelper inputHelper; 
 
+        protected static Point WorldSize {get; set;}
+        protected static Point WindowSize {get; set;}
+
         public ExtendedGame()
         {
             inputHelper = new InputHelper(this);
             graphics = new GraphicsDeviceManager(this);
             Content.RootDirectory = "Content";
             IsMouseVisible = true;
-            spriteBatch = new SpriteBatch(GraphicsDevice);
             gameObjects = new List<GameObject>();
+
+            WorldSize = new Point(320, 180);
+            WindowSize = new Point(1280, 720);
+
+            ChangeScreen(false);
         }
 
         protected override void Initialize()
@@ -49,6 +57,10 @@ namespace Engine
         {
             foreach(GameObject obj in gameObjects)
                 obj.HandleInput(inputHelper);
+
+            // Change screen to fullscreen or unfullscreen by pressing f5
+            if(inputHelper.KeyPressed(Keys.F5))
+                ChangeScreen(!IsFullScreen);
         }
 
         protected override void Draw(GameTime gameTime)
@@ -61,9 +73,50 @@ namespace Engine
             spriteBatch.End();
         }
 
-        public Vector2 ScreenToWorld(Vector2 pos)
+        /// <summary>
+        /// Property for setting and getting the value of fullscreen
+        /// </summary>
+        protected bool IsFullScreen
         {
-            return Vector2.Zero;
+            get
+            {
+                return graphics.IsFullScreen;
+            }
+            set
+            {
+                graphics.IsFullScreen = value;
+            }
+        }
+
+        protected void ChangeScreen(bool fullscreen)
+        {
+            IsFullScreen = fullscreen;
+
+            Point screenSize;
+
+            if(!IsFullScreen)
+            {
+                screenSize.X = WindowSize.X;
+                screenSize.Y = WindowSize.Y; 
+            } 
+            else
+            {
+                screenSize = new Point(GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Width, GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Height);
+            }
+
+            graphics.PreferredBackBufferWidth = screenSize.X;
+            graphics.PreferredBackBufferHeight = screenSize.Y;
+
+            graphics.ApplyChanges();
+
+            
+        }
+
+        public Vector2 ScreenToWorld(Vector2 screenPosition)
+        {
+            Vector2 viewportTopLeft = new Vector2(GraphicsDevice.Viewport.X, GraphicsDevice.Viewport.Y);
+            float screenToWorld = WorldSize.X / (float) GraphicsDevice.Viewport.Width;
+            return (screenPosition - viewportTopLeft) * screenToWorld;
         }
     }
 }
