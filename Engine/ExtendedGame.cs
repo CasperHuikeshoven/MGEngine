@@ -10,11 +10,17 @@ namespace Engine
         private GraphicsDeviceManager graphics;
         private SpriteBatch spriteBatch;
 
-        private List<GameObject> gameObjects;
+        public static GameStateManager GameStateManager{get; set;}
+
+        public static AssetManager AssetManager{get; set;}
+
         private InputHelper inputHelper; 
+
+        public static Random Random{get; set;}
 
         protected static Point WorldSize {get; set;}
         protected static Point WindowSize {get; set;}
+        Matrix spriteScale;
 
         public ExtendedGame()
         {
@@ -22,12 +28,15 @@ namespace Engine
             graphics = new GraphicsDeviceManager(this);
             Content.RootDirectory = "Content";
             IsMouseVisible = true;
-            gameObjects = new List<GameObject>();
+            GameStateManager = new GameStateManager();
+            AssetManager = new AssetManager(Content);
 
             WorldSize = new Point(320, 180);
             WindowSize = new Point(1280, 720);
 
             ChangeScreen(false);
+
+            Random = new Random();
         }
 
         protected override void Initialize()
@@ -40,23 +49,17 @@ namespace Engine
             spriteBatch = new SpriteBatch(GraphicsDevice);
         }
 
-        protected void AddChild(GameObject obj)
-        {
-            gameObjects.Add(obj);
-        }
-
         protected override void Update(GameTime gameTime)
         {
             inputHelper.Update(gameTime);
             HandleInput(inputHelper);
-            foreach(GameObject obj in gameObjects)
-                obj.Update(gameTime);
+            
+            GameStateManager.Update(gameTime);
         }
 
         protected virtual void HandleInput(InputHelper inputHelper)
         {
-            foreach(GameObject obj in gameObjects)
-                obj.HandleInput(inputHelper);
+            GameStateManager.HandleInput(inputHelper);
 
             // Change screen to fullscreen or unfullscreen by pressing f5
             if(inputHelper.KeyPressed(Keys.F5))
@@ -67,9 +70,10 @@ namespace Engine
         {
             GraphicsDevice.Clear(Color.Black);
 
-            spriteBatch.Begin();
-            foreach(GameObject obj in gameObjects)
-                obj.Draw(spriteBatch, gameTime);
+            spriteBatch.Begin(SpriteSortMode.FrontToBack, null, SamplerState.PointClamp, null, null, null, spriteScale);
+            
+            GameStateManager.Draw(spriteBatch, gameTime);
+
             spriteBatch.End();
         }
 
@@ -109,7 +113,38 @@ namespace Engine
 
             graphics.ApplyChanges();
 
-            
+            GraphicsDevice.Viewport = CalculateViewport(screenSize);
+
+            spriteScale = Matrix.CreateScale((float)GraphicsDevice.Viewport.Width / WorldSize.X, (float)GraphicsDevice.Viewport.Height / WorldSize.Y, 1);
+        }
+
+        Viewport CalculateViewport(Point windowSize)
+        {
+            // create a Viewport object
+            Viewport viewport = new Viewport();
+
+            // calculate the two aspect ratios
+            float gameAspectRatio = (float)WorldSize.X / WorldSize.Y;
+            float windowAspectRatio = (float)windowSize.X / windowSize.Y;
+
+            // if the window is relatively wide, use the full window height
+            if (windowAspectRatio > gameAspectRatio)
+            {
+                viewport.Width = (int)(windowSize.Y * gameAspectRatio);
+                viewport.Height = windowSize.Y;
+            }
+            // if the window is relatively high, use the full window width
+            else
+            {
+                viewport.Width = windowSize.X;
+                viewport.Height = (int)(windowSize.X / gameAspectRatio);
+            }
+
+            // calculate and store the top-left corner of the viewport
+            viewport.X = (windowSize.X - viewport.Width) / 2;
+            viewport.Y = (windowSize.Y - viewport.Height) / 2;
+
+            return viewport;
         }
 
         public Vector2 ScreenToWorld(Vector2 screenPosition)

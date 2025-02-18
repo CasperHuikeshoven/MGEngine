@@ -2,7 +2,10 @@
 using Engine;
 
 class MGGame : ExtendedGame
-{
+{ 
+
+    public const string Key_StartState = "startState";
+
     [STAThread]
     static void Main()
     {
@@ -12,7 +15,8 @@ class MGGame : ExtendedGame
 
     public MGGame()
     {
-        
+        GameStateManager.AddGameState(new StartState(GameStateManager), Key_StartState);
+        GameStateManager.SwitchState(Key_StartState);
     }
 
     protected override void Initialize()
