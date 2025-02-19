@@ -31,8 +31,8 @@ namespace Engine
             GameStateManager = new GameStateManager();
             AssetManager = new AssetManager(Content);
 
-            WorldSize = new Point(320, 180);
-            WindowSize = new Point(1280, 720);
+            WorldSize = new Point(320, 192);
+            WindowSize = new Point(1280, 768);
 
             ChangeScreen(false);
 

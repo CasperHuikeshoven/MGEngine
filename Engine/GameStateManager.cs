@@ -7,7 +7,7 @@ namespace Engine
     public class GameStateManager
     {
         Dictionary<string, GameState> gameStates;
-        GameState activeState;
+        GameState? activeState;
 
         public GameStateManager()
         {

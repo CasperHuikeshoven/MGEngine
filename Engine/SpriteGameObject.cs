@@ -47,7 +47,7 @@ namespace Engine
 
         public override void Draw(SpriteBatch spriteBatch, GameTime gameTime)
         {
-            spriteBatch.Draw(Sprite, LocalPosition, DrawBox, Color.White, 0, Vector2.Zero, 1f, SpriteEffects.None, Depth);
+            spriteBatch.Draw(Sprite, GlobalPosition, DrawBox, Color.White, 0, Vector2.Zero, 1f, SpriteEffects.None, Depth);
         }
 
         public Rectangle BoundingBox
@@ -76,6 +76,11 @@ namespace Engine
                 {
                     dbox.X = (SheetIndex % columns) * Width;
                     dbox.Y = (SheetIndex / columns) * Height;
+                }
+                else
+                {
+                    dbox.X = 0;
+                    dbox.Y = 0;
                 }
 
                 return dbox;
